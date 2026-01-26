@@ -3,7 +3,9 @@ package com.rag.auth.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rag.auth.dao.RoleMapper;
 import com.rag.auth.dao.UserMapper;
+import com.rag.auth.dto.AuthDTO;
 import com.rag.auth.entity.User;
+import com.rag.auth.vo.Result;
 import com.rag.common.constant.AuthConstants;
 import com.rag.common.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,16 +35,15 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    public Map<String, Object> login(Map<String, String> request) {
+    public Result login(AuthDTO dto) {
 
-        String username = request.get("username");
-        String password = request.get("password");
+        String userName = dto.getUserName();
+        String passWord = dto.getPassWord();
+
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, userName));
 
 
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
-
-
-        if (null == user || !passwordEncoder.matches(password, user.getPassword())) {
+        if (null == user || !passwordEncoder.matches(passWord, user.getPassword())) {
             throw new RuntimeException("账户或密码错误");
         }
 
@@ -72,10 +73,10 @@ public class AuthService {
         );
 
 
-        return Map.of("token", token);
+       return Result.ok(token);
     }
 
-    public Map<String, Object> logout(String header) {
+    public Result logout(String header) {
         String token = header.replace(AuthConstants.TOKEN_PREFIX, "");
 
 
@@ -84,6 +85,39 @@ public class AuthService {
 
 
         redisTemplate.delete(AuthConstants.REDIS_SESSION_PREFIX + sessionId);
-        return Map.of("message", "logout success");
+        return Result.ok(token);
+    }
+
+    public Result register(AuthDTO dto) {
+
+        String userName = dto.getUserName();
+        String passWord = dto.getPassWord();
+
+
+        if (userName == null || passWord == null) {
+            throw new RuntimeException("用户名或密码不能为空");
+        }
+
+
+// 1️⃣ 检查用户是否已存在
+        User existing = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, userName));
+        if (existing != null) {
+            throw new RuntimeException("用户名已存在");
+        }
+
+
+// 2️⃣ 密码加密
+        String encodedPassword = passwordEncoder.encode(passWord);
+
+
+// 3️⃣ 构造用户实体
+        User user = new User();
+        user.setUsername(userName);
+        user.setPassword(encodedPassword);
+        userMapper.insert(user);
+
+
+// 4️⃣ 可以直接返回注册成功提示
+        return Result.ok();
     }
 }
