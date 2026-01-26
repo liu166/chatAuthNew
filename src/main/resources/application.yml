@@ -33,8 +33,6 @@ server:
   port: 9001
 
 auth:
-jwt-secret: my-super-secret-key-123
-expire-hours: 2
-excludes:
+  excludes:
   - /auth/login
   - /auth/logout
