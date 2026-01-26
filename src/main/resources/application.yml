@@ -37,3 +37,4 @@ jwt-secret: my-super-secret-key-123
 expire-hours: 2
 excludes:
   - /auth/login
+  - /auth/logout
