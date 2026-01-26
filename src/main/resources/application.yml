@@ -1,0 +1,39 @@
+
+spring:
+  application:
+    name: rag
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://localhost:3306/auth?characterEncoding=utf-8&serverTimezone=GMT%2B8
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: 300ms
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    database-id: mysql
+
+server:
+  port: 9001
+
+auth:
+jwt-secret: my-super-secret-key-123
+expire-hours: 2
+excludes:
+  - /auth/login
