@@ -11,6 +11,7 @@ import com.rag.common.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -30,7 +31,8 @@ public class AuthService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -41,11 +43,10 @@ public class AuthService {
         String passWord = dto.getPassWord();
 
         User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, userName));
-
-
         if (null == user || !passwordEncoder.matches(passWord, user.getPassword())) {
             throw new RuntimeException("账户或密码错误");
         }
+        user.setRoles(roleMapper.getRolesByUserId(user.getId()));
 
 
 // 生成 sessionId
