@@ -32,8 +32,8 @@
     <dependencies>
         <!-- Starter -->
         <dependency>
-            <groupId>com.rag</groupId>
-            <artifactId>auth-spring-boot-starter</artifactId>
+            <groupId>com.github.liu166</groupId>
+            <artifactId>chatAuthStarter</artifactId>
             <version>1.0.6</version>
         </dependency>
 
@@ -89,4 +89,10 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 </project>
