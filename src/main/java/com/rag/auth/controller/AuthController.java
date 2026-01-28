@@ -46,4 +46,10 @@ public class AuthController {
     public Result register(@RequestBody AuthDTO dto) {
         return authService.register(dto);
     }
+
+
+    @PostMapping("/verify")
+    public Result verify(@RequestHeader(AuthConstants.AUTH_HEADER) String header) {
+        return authService.verify(header);
+    }
 }

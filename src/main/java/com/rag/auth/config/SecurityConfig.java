@@ -19,17 +19,22 @@ public class SecurityConfig {
     }
 
 
+
     @Bean
-    @ConditionalOnBean(JwtAuthFilter.class) // 确保 starter 注入了 JwtAuthFilter
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // 关闭 CSRF（API 服务常用）
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/register").permitAll() // 登录/注册放行
-                        .anyRequest().authenticated() // 其他请求必须认证
+                        .requestMatchers("/auth/login", "/auth/register").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // 加入 JWT 过滤器
+                .exceptionHandling(e ->
+                        e.authenticationEntryPoint((req, resp, ex) -> resp.setStatus(401))
+                );
 
+        if (jwtAuthFilter != null) {
+            http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        }
 
         return http.build();
     }

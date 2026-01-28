@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,19 +50,18 @@ public class AuthService {
         user.setRoles(roleMapper.getRolesByUserId(user.getId()));
 
 
-// 生成 sessionId
         String sessionId = UUID.randomUUID().toString();
 
 
-// ⚡ 使用注入的 jwtUtil.createToken
         String token = jwtUtil.createToken(sessionId);
 
 
-// 存 Redis
-        Map<String, Object> session = Map.of(
-                "userId", user.getId(),
-                "username", user.getUsername(),
-                "roles", user.getRoles().stream()
+        Map<String, Object> session = new HashMap<>();
+        session.put("userId", user.getId());
+        session.put("username", user.getUsername());
+        session.put(
+                "roles",
+                user.getRoles().stream()
                         .map(r -> r.getName())
                         .collect(Collectors.toList())
         );
@@ -74,14 +74,13 @@ public class AuthService {
         );
 
 
-       return Result.ok(token);
+        return Result.ok(token);
     }
 
     public Result logout(String header) {
         String token = header.replace(AuthConstants.TOKEN_PREFIX, "");
 
 
-// ⚡ 使用注入的 jwtUtil.parseToken
         String sessionId = jwtUtil.parseToken(token).get("sessionId", String.class);
 
 
@@ -100,25 +99,27 @@ public class AuthService {
         }
 
 
-// 1️⃣ 检查用户是否已存在
         User existing = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, userName));
         if (existing != null) {
             throw new RuntimeException("用户名已存在");
         }
 
-
-// 2️⃣ 密码加密
         String encodedPassword = passwordEncoder.encode(passWord);
 
 
-// 3️⃣ 构造用户实体
         User user = new User();
         user.setUsername(userName);
         user.setPassword(encodedPassword);
         userMapper.insert(user);
 
-
-// 4️⃣ 可以直接返回注册成功提示
         return Result.ok();
+    }
+
+    public Result verify(String header) {
+        String token = header.replace(AuthConstants.TOKEN_PREFIX, "");
+
+        String sessionId = jwtUtil.parseToken(token).get("sessionId", String.class);
+        return Result.ok(redisTemplate.hasKey(AuthConstants.REDIS_SESSION_PREFIX + sessionId));
+
     }
 }
