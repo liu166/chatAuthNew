@@ -38,3 +38,4 @@ auth:
   excludes:
   - /auth/login
   - /auth/register
+  - /error
