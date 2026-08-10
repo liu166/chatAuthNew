@@ -1,7 +1,8 @@
-
 spring:
   application:
-    name: rag
+    name: chatAuthNew
+  config:
+    import: optional:nacos:${spring.application.name}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
@@ -22,20 +23,14 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
-
-
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     database-id: mysql
-
 server:
   port: 8081
-
 auth:
   jwtSecret: auth-secret-auth-secret-auth-secret-1234
   expireHours: 2
   excludes:
-  - /auth/login
-  - /auth/register
-  - /error
+  - /**
